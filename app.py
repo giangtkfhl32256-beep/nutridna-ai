@@ -1,0 +1,448 @@
+import streamlit as st
+import matplotlib.pyplot as plt
+
+st.set_page_config(page_title="NutriDNA AI - Stress & Sleep Edition", layout="centered")
+
+st.title("🧠 NutriDNA AI")
+st.subheader("AI phân tích thiếu ngủ & stress cho sinh viên")
+
+st.header("Nhập thông tin của bạn")
+
+age = st.number_input("Tuổi", 16, 30)
+weight = st.number_input("Cân nặng (kg)", 40, 120)
+height = st.number_input("Chiều cao (cm)", 140, 200)
+if age < 18:
+    st.info("⚠️ Kết quả chỉ mang tính tham khảo vì cơ thể vẫn đang phát triển.")
+sleep = st.slider("Bạn ngủ bao nhiêu tiếng?", 0, 12)
+stress = st.selectbox("Mức độ stress hôm nay", ["Thấp", "Trung bình", "Cao"])
+# ===== Thông tin cá nhân mở rộng =====
+
+goal = st.selectbox(
+    "🎯 Mục tiêu hiện tại của bạn",
+    ["Tăng năng lượng", "Giảm stress", "Giảm cân", "Tăng cân", "Duy trì sức khỏe"]
+)
+
+activity = st.selectbox(
+    "🏃 Mức độ vận động",
+    ["Ít vận động", "Vận động nhẹ", "Vận động nhiều"]
+)
+
+# ===== Dị ứng linh hoạt =====
+allergies = st.multiselect(
+    "🚫 Dị ứng / cần tránh",
+    ["Sữa", "Hải sản", "Đậu phộng", "Gluten", "Trứng", "Đậu nành"]
+)
+# ===== Chọn phong cách thực đơn =====
+menu_style = st.radio(
+    "🍽 Chọn phong cách thực đơn",
+    ["Món ăn Việt phổ biến", "Healthy / Fitness"]
+)
+# ===== DATABASE MÓN ĂN =====
+menu = [
+
+{
+    "name": "Bowl gạo lứt ức gà",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng", "Giảm cân"],
+    "contains": [],
+    "calories": 450,
+    "protein": 40,
+    "carbs": 50,
+    "fat": 10
+},
+
+{
+    "name": "Yến mạch chuối sữa",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm stress"],
+    "contains": ["Sữa"],
+    "calories": 420,
+    "protein": 18,
+    "carbs": 65,
+    "fat": 12
+},
+
+{
+    "name": "Cá hồi áp chảo",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": ["Hải sản"],
+    "calories": 520,
+    "protein": 42,
+    "carbs": 20,
+    "fat": 30
+},
+
+{
+    "name": "Salad đậu hũ",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân", "Giảm stress"],
+    "contains": ["Đậu nành"],
+    "calories": 350,
+    "protein": 25,
+    "carbs": 30,
+    "fat": 12
+},
+# ===== THÊM MÓN HEALTHY MỞ RỘNG =====
+
+{
+    "name": "Ức gà sốt tiêu đen & bông cải",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân", "Tăng năng lượng"],
+    "contains": [],
+    "calories": 430,
+    "protein": 45,
+    "carbs": 30,
+    "fat": 12
+},
+{
+    "name": "Cơm lứt bò áp chảo",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng cơ", "Tăng năng lượng"],
+    "contains": [],
+    "calories": 550,
+    "protein": 42,
+    "carbs": 60,
+    "fat": 18
+},
+{
+    "name": "Salad cá ngừ Địa Trung Hải",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân"],
+    "contains": ["Hải sản"],
+    "calories": 390,
+    "protein": 38,
+    "carbs": 15,
+    "fat": 16
+},
+{
+    "name": "Trứng ốp la & bánh mì nguyên cám",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": ["Trứng", "Gluten"],
+    "calories": 480,
+    "protein": 22,
+    "carbs": 55,
+    "fat": 20
+},
+{
+    "name": "Bowl đậu hũ nướng rau củ",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân", "Giảm stress"],
+    "contains": ["Đậu nành"],
+    "calories": 360,
+    "protein": 25,
+    "carbs": 35,
+    "fat": 14
+},
+{
+    "name": "Pasta nguyên cám ức gà",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": ["Gluten"],
+    "calories": 520,
+    "protein": 35,
+    "carbs": 70,
+    "fat": 12
+},
+{
+    "name": "Cá basa hấp & khoai lang",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân"],
+    "contains": ["Hải sản"],
+    "calories": 410,
+    "protein": 36,
+    "carbs": 40,
+    "fat": 10
+},
+{
+    "name": "Sinh tố chuối whey",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng cân", "Tăng cơ"],
+    "contains": ["Sữa"],
+    "calories": 550,
+    "protein": 40,
+    "carbs": 65,
+    "fat": 14
+},
+{
+    "name": "Cơm lứt tôm áp chảo",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": ["Hải sản"],
+    "calories": 500,
+    "protein": 38,
+    "carbs": 55,
+    "fat": 12
+},
+{
+    "name": "Salad ức gà mè rang",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân"],
+    "contains": ["Đậu nành"],
+    "calories": 420,
+    "protein": 40,
+    "carbs": 20,
+    "fat": 18
+},
+{
+    "name": "Bowl quinoa trứng luộc",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": ["Trứng"],
+    "calories": 470,
+    "protein": 28,
+    "carbs": 55,
+    "fat": 15
+},
+{
+    "name": "Ức gà teriyaki healthy",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng cơ"],
+    "contains": ["Đậu nành"],
+    "calories": 500,
+    "protein": 48,
+    "carbs": 45,
+    "fat": 12
+},
+{
+    "name": "Smoothie xoài hạt chia",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm stress"],
+    "contains": [],
+    "calories": 380,
+    "protein": 12,
+    "carbs": 60,
+    "fat": 8
+},
+{
+    "name": "Cơm lứt gà nướng mật ong",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": [],
+    "calories": 530,
+    "protein": 42,
+    "carbs": 65,
+    "fat": 10
+},
+{
+    "name": "Salad bơ cá hồi",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân"],
+    "contains": ["Hải sản"],
+    "calories": 450,
+    "protein": 35,
+    "carbs": 18,
+    "fat": 22
+},
+{
+    "name": "Cháo yến mạch hạt óc chó",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm stress"],
+    "contains": [],
+    "calories": 400,
+    "protein": 14,
+    "carbs": 55,
+    "fat": 15
+},
+{
+    "name": "Cơm lứt ức gà sốt pesto",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng cơ"],
+    "contains": [],
+    "calories": 520,
+    "protein": 45,
+    "carbs": 50,
+    "fat": 18
+},
+{
+    "name": "Bánh pancake yến mạch",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng năng lượng"],
+    "contains": ["Trứng", "Gluten"],
+    "calories": 480,
+    "protein": 20,
+    "carbs": 65,
+    "fat": 12
+},
+{
+    "name": "Bowl gạo lứt cá hồi",
+    "style": "Healthy / Fitness",
+    "goal": ["Tăng cơ"],
+    "contains": ["Hải sản"],
+    "calories": 560,
+    "protein": 44,
+    "carbs": 55,
+    "fat": 20
+},
+{
+    "name": "Salad đậu lăng",
+    "style": "Healthy / Fitness",
+    "goal": ["Giảm cân", "Giảm stress"],
+    "contains": [],
+    "calories": 370,
+    "protein": 22,
+    "carbs": 40,
+    "fat": 9
+}
+]
+
+if st.button("Phân tích bằng AI"):
+
+    recommended = []
+    # ===== BMI =====
+    if height > 0:
+        bmi = weight / ((height/100) ** 2)
+    else:
+        st.error("Chiều cao không hợp lệ")
+        st.stop()
+    
+    if bmi < 18.5:
+        bmi_status = "Thiếu cân"
+    elif bmi < 23:
+        bmi_status = "Bình thường"
+    elif bmi < 25:
+        bmi_status = "Thừa cân"
+    else:
+        bmi_status = "Nguy cơ béo phì"
+
+    # ===== Sleep Score =====
+    sleep_score = min(sleep * 10, 100)
+
+    if sleep < 5:
+        sleep_status = "Nguy cơ suy giảm tập trung cao"
+    elif sleep < 7:
+        sleep_status = "Thiếu ngủ nhẹ"
+    else:
+        sleep_status = "Giấc ngủ tương đối ổn"
+
+    # ===== Stress phân tích =====
+    if stress == "Cao":
+        stress_status = "Cortisol có thể đang cao"
+    elif stress == "Trung bình":
+        stress_status = "Cần hỗ trợ thư giãn nhẹ"
+    else:
+        stress_status = "Trạng thái tâm lý ổn định" 
+    # ===== AI Impact Score =====
+    if stress == "Thấp":
+        stress_value = 20
+    elif stress == "Trung bình":
+        stress_value = 50
+    else:
+        stress_value = 80
+
+    impact_score = (100 - sleep_score) * 0.6 + stress_value * 0.4 
+    # ===== Cá nhân hóa nâng cao =====
+    personal_factor = 0
+
+    if goal == "Tăng năng lượng" and sleep < 6:
+        personal_factor += 10
+
+    if goal == "Giảm stress" and stress == "Cao":
+        personal_factor += 10
+
+    if activity == "Vận động nhiều":
+        personal_factor += 5
+
+    impact_score += personal_factor
+    st.subheader("🧬 Kết quả phân tích AI")
+
+    st.write(f"**BMI:** {round(bmi,1)} → {bmi_status}")
+    st.write(f"**Sleep Score:** {sleep_score}/100 → {sleep_status}")
+    st.progress(sleep_score / 100)
+    if sleep_score < 50:
+        st.error("🔴 Risk Level: Cao – Nguy cơ suy giảm tập trung và hiệu suất học tập.")
+    elif sleep_score < 70:
+        st.warning("🟡 Risk Level: Trung bình – Cần cải thiện giấc ngủ.")
+    else:
+        st.success("🟢 Risk Level: Thấp – Trạng thái tương đối ổn định.")
+
+    st.caption("📊 Hệ thống sử dụng thuật toán đánh giá dựa trên chỉ số BMI, thời lượng ngủ       và mức độ stress tự báo cáo.")
+    st.subheader("🧠 AI Impact Analysis")
+
+    st.metric("Impact Score", round(impact_score,1))
+    st.caption(f"AI đã điều chỉnh phân tích dựa trên mục tiêu '{goal}' và mức vận động '{activity}'.")
+
+    if impact_score > 70:
+        st.error("🔴 Tình trạng đáng lo ngại – Cần cải thiện giấc ngủ và giảm stress ngay.")
+    elif impact_score > 40:
+        st.warning("🟡 Có dấu hiệu ảnh hưởng đến hiệu suất học tập.")
+    else:
+        st.success("🟢 Ổn định – Tác động thấp đến sức khỏe tinh thần.")
+
+    st.write(f"**Phân tích stress:** {stress_status}")
+
+    # ===== BIỂU ĐỒ PHÂN TÍCH =====
+    st.subheader("📊 Biểu đồ tác động")
+
+    fig, ax = plt.subplots()
+
+    labels = ["Thiếu ngủ", "Stress"]
+    values = [100 - sleep_score, stress_value]
+
+    bars = ax.bar(labels, values)
+
+    ax.set_ylabel("Mức độ ảnh hưởng (%)")
+    ax.set_ylim(0, 100)
+    ax.set_title("So sánh mức độ tác động")
+
+    # Thêm số trên đầu cột
+    for i in range(len(values)):
+        ax.text(i, values[i] + 2, str(round(values[i],1)), ha='center')
+
+    st.pyplot(fig)
+    st.info("🤖 AI phân tích rằng yếu tố có cột cao hơn đang ảnh hưởng mạnh hơn đến hiệu suất học tập của bạn.")
+    if values[0] > values[1]:
+        st.warning("👉 Ưu tiên cải thiện giấc ngủ trước.")
+    else:
+        st.warning("👉 Ưu tiên kiểm soát stress trước.")
+
+        st.divider()
+
+    st.subheader("🥗 Đề xuất dinh dưỡng phục hồi")
+
+    recommended = []
+
+    for item in menu:
+        score = 0
+
+        # 1. Dị ứng
+        if allergies:
+            if any(allergy in item["contains"] for allergy in allergies):
+                continue
+
+        # 2. Phù hợp phong cách
+        if item["style"] == menu_style:
+            score += 1
+
+        # 3. Phù hợp mục tiêu
+        if goal in item["goal"]:
+            score += 2
+
+        # 4. Ngủ ít
+        if sleep < 6 and "Tăng năng lượng" in item["goal"]:
+            score += 1
+
+        # 5. Stress cao
+        if stress == "Cao" and "Giảm stress" in item["goal"]:
+            score += 1
+
+        recommended.append((item, score))
+
+    # Sắp xếp (PHẢI nằm ngoài vòng for)
+    recommended.sort(key=lambda x: x[1], reverse=True)
+
+    st.subheader("🏆 Top 3 món phù hợp nhất:")
+
+    if recommended:
+        for item, score in recommended[:3]:
+            st.write(f"🍽 {item['name']} — Điểm phù hợp: {score}")
+            st.write(
+                f"🔥 {item['calories']} kcal | "
+                f"💪 {item['protein']}g protein | "
+                f"🍚 {item['carbs']}g carbs | "
+                f"🥑 {item['fat']}g fat"
+            )
+            st.markdown("---")
+    else:
+        st.warning("Không tìm thấy món phù hợp.")
