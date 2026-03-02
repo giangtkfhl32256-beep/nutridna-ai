@@ -146,9 +146,7 @@ AI phân tích thiếu ngủ & stress để gợi ý thực đơn cá nhân hóa
 
 </div>
 """, unsafe_allow_html=True)
-# ===== CẤU HÌNH THƯ MỤC ẢNH =====
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-images = os.path.join(BASE_DIR, "images")
+images = "images"
 def calculate_tdee(weight, height, age, gender, activity_level):
 
     if gender == "Nam":
